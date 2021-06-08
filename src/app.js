@@ -43,6 +43,24 @@ app.get('/weather', (req, res) => {
   res.send({ forecast: 'It is sunny', location: 'Madrid' });
 });
 
+// Hanlde 404 errors from help
+app.get('/help/*', (req, res) => {
+  res.render('404', {
+    title: '404',
+    name: 'JGA',
+    errorMessage: 'Help article not found',
+  });
+});
+
+// Handle any 404 errors
+app.get('*', (req, res) => {
+  res.render('404', {
+    title: '404',
+    name: 'JGA',
+    errorMessage: 'Page not found',
+  });
+});
+
 app.listen(3000, () => {
   console.log('Server is up on port 3000.');
 });
