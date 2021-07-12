@@ -2,6 +2,9 @@ const path = require('path');
 const express = require('express');
 const hbs = require('hbs');
 
+const geocode = require('./utils/geocode');
+const forecast = require('./utils/forecast');
+
 const app = express();
 
 // Define paths for Express config
@@ -39,8 +42,43 @@ app.get('/help', (req, res) => {
   });
 });
 
-app.get('/weather', (req, res) => {
-  res.send({ forecast: 'It is sunny', location: 'Madrid' });
+app.get('/weather', async (req, res) => {
+  if (!req?.query?.address) {
+    return res.send({
+      error: 'Address must be provided!',
+    });
+  }
+
+  const { address } = req.query;
+
+  const { error: geocodeError, data: geocodeData } = await geocode(address);
+  if (geocodeError) {
+    return res.send({
+      error: geocodeError,
+    });
+  }
+
+  const { location, latitude, longitude } = geocodeData;
+
+  const { error: forecastError, data: forecastData } = await forecast(
+    latitude,
+    longitude
+  );
+  if (forecastError) {
+    return res.send({
+      error: forecastError,
+    });
+  }
+
+  const { weather, temperature, feelslike } = forecastData;
+
+  res.send({
+    address,
+    weather,
+    temperature,
+    feelslike,
+    location,
+  });
 });
 
 // Hanlde 404 errors from help
